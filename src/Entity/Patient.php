@@ -3,35 +3,28 @@
 namespace App\Entity;
 
 use App\Repository\PatientRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\User;
 
 #[ORM\Entity(repositoryClass: PatientRepository::class)]
 class Patient extends User
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 50, nullable: true)]
     private ?string $code = null;
+    
+    #[ORM\ManyToMany(targetEntity: AntecedantMedical::class, inversedBy: 'patients')]
+    private Collection $antecedantsMedicaux;
 
-    #[ORM\OneToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $user = null;
+    #[ORM\OneToMany(mappedBy: 'patient', targetEntity: RendezVous::class)]
+    private Collection $rendezVous;
 
-    #[ORM\OneToMany(mappedBy: 'patient', targetEntity: AntecedentMedical::class, cascade: ['persist', 'remove'])]
-    private Collection $antecedentsMedicaux;
-
-    public function __construct()
+    public function __construct($login, $password)
     {
-        $this->antecedentsMedicaux = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
+        parent::__construct($login, $password);
+        $this->antecedantsMedicaux = new ArrayCollection();
+        $this->rendezVous = new ArrayCollection();
+        $this->setRoles(['ROLE_PATIENT']);
     }
 
     public function getCode(): ?string
@@ -42,42 +35,49 @@ class Patient extends User
     public function setCode(?string $code): static
     {
         $this->code = $code;
-
         return $this;
     }
 
-    public function getUser(): ?User
+    public function getAntecedantsMedicaux(): Collection
     {
-        return $this->user;
+        return $this->antecedantsMedicaux;
     }
 
-    public function setUser(User $user): self
+    public function addAntecedantMedical(AntecedantMedical $antecedantMedical): static
     {
-        $this->user = $user;
-
-        return $this;
-    }
-
-    public function getAntecedentsMedicaux(): Collection
-    {
-        return $this->antecedentsMedicaux;
-    }
-
-    public function addAntecedentMedical(AntecedentMedical $antecedentMedical): static
-    {
-        if (!$this->antecedentsMedicaux->contains($antecedentMedical)) {
-            $this->antecedentsMedicaux[] = $antecedentMedical;
-            $antecedentMedical->setPatient($this);
+        if (!$this->antecedantsMedicaux->contains($antecedantMedical)) {
+            $this->antecedantsMedicaux->add($antecedantMedical);
         }
 
         return $this;
     }
 
-    public function removeAntecedentMedical(AntecedentMedical $antecedentMedical): static
+    public function removeAntecedantMedical(AntecedantMedical $antecedantMedical): static
     {
-        if ($this->antecedentsMedicaux->removeElement($antecedentMedical)) {
-            if ($antecedentMedical->getPatient() === $this) {
-                $antecedentMedical->setPatient(null);
+        $this->antecedantsMedicaux->removeElement($antecedantMedical);
+        return $this;
+    }
+
+    public function getRendezVous(): Collection
+    {
+        return $this->rendezVous;
+    }
+
+    public function addRendezVou(RendezVous $rendezVou): static
+    {
+        if (!$this->rendezVous->contains($rendezVou)) {
+            $this->rendezVous->add($rendezVou);
+            $rendezVou->setPatient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRendezVou(RendezVous $rendezVou): static
+    {
+        if ($this->rendezVous->removeElement($rendezVou)) {
+            if ($rendezVou->getPatient() === $this) {
+                $rendezVou->setPatient(null);
             }
         }
 

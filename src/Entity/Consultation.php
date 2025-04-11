@@ -2,54 +2,38 @@
 
 namespace App\Entity;
 
+use App\Enum\TypeEnum;
 use App\Repository\ConsultationRepository;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\RendezVous;
 
 #[ORM\Entity(repositoryClass: ConsultationRepository::class)]
 class Consultation extends RendezVous
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(nullable: true)]
+    private ?float $temperature = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $temperature = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(nullable: true)]
     private ?string $tension = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $pouls = null;
+    #[ORM\Column(nullable: true)]
+    private ?int $pouls = null;
 
-    #[ORM\ManyToOne(targetEntity: Medecin::class, inversedBy: 'consultations')]
-    #[ORM\JoinColumn(nullable: false)]
-    private $medecin;
-
-    #[ORM\OneToOne(targetEntity: RendezVous::class, inversedBy: 'consultation')]
-    #[ORM\JoinColumn(nullable: false)]
-    private $rendezVous;
+    #[ORM\OneToOne(mappedBy: 'consultation', cascade: ['persist', 'remove'])]
+    private ?Ordonnance $ordonnance = null;
 
     public function __construct()
     {
-        $this->setType(TypeEnum::CONSULTATION);
+        $this->setType(TypeEnum::PRESTATION);
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getTemperature(): ?string
+    public function getTemperature(): ?float
     {
         return $this->temperature;
     }
 
-    public function setTemperature(?string $temperature): static
+    public function setTemperature(?float $temperature): static
     {
         $this->temperature = $temperature;
-
         return $this;
     }
 
@@ -61,7 +45,6 @@ class Consultation extends RendezVous
     public function setTension(?string $tension): static
     {
         $this->tension = $tension;
-
         return $this;
     }
 
@@ -73,29 +56,26 @@ class Consultation extends RendezVous
     public function setPouls(?string $pouls): static
     {
         $this->pouls = $pouls;
-
         return $this;
     }
 
-    public function getMedecin(): ?Medecin
+    public function getOrdonnance(): ?Ordonnance
     {
-        return $this->medecin;
+        return $this->ordonnance;
     }
 
-    public function setMedecin(?Medecin $medecin): static
+    public function setOrdonnance(?Ordonnance $ordonnance): static
     {
-        $this->medecin = $medecin;
+        if ($ordonnance === null && $this->ordonnance !== null) {
+            $this->ordonnance->setConsultation(null);
+        }
+
+        if ($ordonnance !== null && $ordonnance->getConsultation() !== $this) {
+            $ordonnance->setConsultation($this);
+        }
+
+        $this->ordonnance = $ordonnance;
         return $this;
     }
 
-    public function getRendezVous(): ?RendezVous
-    {
-        return $this->rendezVous;
-    }
-
-    public function setRendezVous(?RendezVous $rendezVous): static
-    {
-        $this->rendezVous = $rendezVous;
-        return $this;
-    }
 }

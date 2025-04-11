@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\SpecialiteRepository;
+use App\Repository\AntecedantMedicalRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SpecialiteRepository::class)]
-class Specialite
+#[ORM\Entity(repositoryClass: AntecedantMedicalRepository::class)]
+class AntecedantMedical
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -18,12 +18,12 @@ class Specialite
     #[ORM\Column(length: 100)]
     private ?string $libelle = null;
 
-    #[ORM\OneToMany(mappedBy: 'specialite', targetEntity: Medecin::class)]
-    private Collection $medecins;
+    #[ORM\ManyToMany(targetEntity: Patient::class, mappedBy: 'antecedantsMedicaux')]
+    private Collection $patients;
 
     public function __construct()
     {
-        $this->medecins = new ArrayCollection();
+        $this->patients = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -42,27 +42,25 @@ class Specialite
         return $this;
     }
 
-    public function getMedecins(): Collection
+    public function getPatients(): Collection
     {
-        return $this->medecins;
+        return $this->patients;
     }
 
-    public function addMedecin(Medecin $medecin): static
+    public function addPatient(Patient $patient): static
     {
-        if (!$this->medecins->contains($medecin)) {
-            $this->medecins->add($medecin);
-            $medecin->setSpecialite($this);
+        if (!$this->patients->contains($patient)) {
+            $this->patients->add($patient);
+            $patient->addAntecedantMedical($this);
         }
 
         return $this;
     }
 
-    public function removeMedecin(Medecin $medecin): static
+    public function removePatient(Patient $patient): static
     {
-        if ($this->medecins->removeElement($medecin)) {
-            if ($medecin->getSpecialite() === $this) {
-                $medecin->setSpecialite(null);
-            }
+        if ($this->patients->removeElement($patient)) {
+            $patient->removeAntecedantMedical($this);
         }
 
         return $this;
@@ -72,5 +70,5 @@ class Specialite
     {
         return $this->libelle;
     }
-
+    
 }

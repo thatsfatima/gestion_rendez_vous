@@ -3,70 +3,66 @@
 namespace App\Entity;
 
 use App\Repository\MedecinRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: MedecinRepository::class)]
-class Medecin
+class Medecin extends User
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\ManyToOne(inversedBy: 'medecins')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Specialite $specialite = null;
 
-    #[ORM\Column]
-    private ?bool $estSpecialise = null;
-    
-    #[ORM\OneToMany(mappedBy: 'medecin', targetEntity: Specialite::class, cascade: ['persist'])]
-    private ?array $specialites = [];
+    #[ORM\OneToMany(mappedBy: 'medecin', targetEntity: RendezVous::class)]
+    private Collection $rendezVous;
 
-    public function getId(): ?int
+    public function __construct($login, $password)
     {
-        return $this->id;
+        parent::__construct($login, $password);
+        $this->rendezVous = new ArrayCollection();
+        $this->setRoles(['ROLE_MEDECIN']);
     }
-    
-    public function isEstSpecialise(): ?bool
-    {
-        return $this->estSpecialise;
-    }
-    
-    public function setEstSpecialise(bool $estSpecialise): static
-    {
-        $this->estSpecialise = $estSpecialise;
-        
-        return $this;
-    }
-    
-    public function getSpecialites(): ?array
-    {
-        return $this->specialites;
-    }
-    
-    public function setSpecialites(?array $specialites): static
-    {
-        $this->specialites = $specialites;
 
+    public function getSpecialite(): ?Specialite
+    {
+        return $this->specialite;
+    }
+
+    public function setSpecialite(?Specialite $specialite): static
+    {
+        $this->specialite = $specialite;
         return $this;
     }
 
-    public function addSpecialite(Specialite $specialite): static
+    public function getRendezVous(): Collection
     {
-        if (!$this->specialites->contains($specialite)) {
-            $this->specialites[] = $specialite;
-            $specialite->setMedecin($this);
+        return $this->rendezVous;
+    }
+
+    public function addRendezVou(RendezVous $rendezVou): static
+    {
+        if (!$this->rendezVous->contains($rendezVou)) {
+            $this->rendezVous->add($rendezVou);
+            $rendezVou->setMedecin($this);
         }
 
         return $this;
     }
 
-    public function removeSpecialite(Specialite $specialite): static
+    public function removeRendezVou(RendezVous $rendezVou): static
     {
-        if ($this->specialites->removeElement($specialite)) {
-            // set the owning side to null (unless already changed)
-            if ($specialite->getMedecin() === $this) {
-                $specialite->setMedecin(null);
+        if ($this->rendezVous->removeElement($rendezVou)) {
+            if ($rendezVou->getMedecin() === $this) {
+                $rendezVou->setMedecin(null);
             }
         }
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getNom() . ' ' . $this->getPrenom();
     }
 }

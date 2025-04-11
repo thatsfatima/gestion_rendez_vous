@@ -19,15 +19,14 @@ class UserFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        $patientRole = $manager->getRepository(Role::class)->findOneBy(['libelle' => 'ROLE_PATIENT']);
-        $user = new User();
-        $user->setNom('Fatima');
-        $user->setPrenom('MBG');
-        $user->setLogin('patient');
-        $user->setPassword($this->passwordHasher->hashPassword($user, 'password'));
-        $user->setTelephone('771234567');
-        $user->setRole($patientRole);
-        $manager->persist($user);
+        // $patientRole = $manager->getRepository(Role::class)->findOneBy(['libelle' => 'ROLE_PATIENT']);
+        // $user = new User('patient', 'passer');
+        // $user->setNom('Fatima');
+        // $user->setPrenom('MBG');
+        // $user->setPassword($this->passwordHasher->hashPassword($user, 'passer'));
+        // $user->setTelephone('771234567');
+        // $user->setRoles(['ROLE_USER', 'ROLE_PATIENT']);
+        // $manager->persist($user);
 
         $manager->flush();
     }

@@ -5,21 +5,17 @@ namespace App\Entity;
 use App\Repository\PrestationRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\RendezVous;
+use App\Enum\TypeEnum;
 
 #[ORM\Entity(repositoryClass: PrestationRepository::class)]
 class Prestation extends RendezVous
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     private ?string $libelle = null;
 
-    #[ORM\OneToOne(targetEntity: RendezVous::class, inversedBy: 'consultation')]
-    #[ORM\JoinColumn(nullable: false)]
-    private $rendezVous;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $resultat = null;
 
     public function __construct()
     {
@@ -43,14 +39,14 @@ class Prestation extends RendezVous
         return $this;
     }
 
-    public function getRendezVous(): ?RendezVous
+    public function getResultat(): ?string
     {
-        return $this->rendezVous;
+        return $this->resultat;
     }
 
-    public function setRendezVous(?RendezVous $rendezVous): static
+    public function setResultat(?string $resultat): static
     {
-        $this->rendezVous = $rendezVous;
+        $this->resultat = $resultat;
         return $this;
     }
 }

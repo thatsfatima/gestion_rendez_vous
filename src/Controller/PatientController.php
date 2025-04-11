@@ -4,10 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Patient;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class PatientController extends Controller
+class PatientController extends AbstractController
 {
     /**
      * @Route("/patients/register", name="patient_register")

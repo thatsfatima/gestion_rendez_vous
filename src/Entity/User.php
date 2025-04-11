@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Enum\RoleEnum;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -11,11 +10,18 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
-
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\InheritanceType("JOINED")]
+#[ORM\DiscriminatorColumn(name: "type", type: "string")]
+#[ORM\DiscriminatorMap([
+    "medecin" => Medecin::class,
+    "patient" => Patient::class,
+    "secretaire" => Secretaire::class,
+    "responsable" => ResponsablePrestation::class
+])]
 #[UniqueEntity(fields: ["login"], message: "Ce login est déjà utilisé.")]
 #[UniqueEntity(fields: ["telephone"], message: "Ce numéro de téléphone est déjà utilisé.")]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
+abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -37,7 +43,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(message: "Le login est obligatoire.")]
     #[Assert\Login(message: "Le login '{{ value }}' n'est pas valide.")]
     #[Groups(["user:read"])]
-    private ?string $login = null;
+    private string $login;
 
     #[ORM\Column]
     #[Assert\NotBlank(message: "Le mot de passe est obligatoire.")]
@@ -46,11 +52,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         minMessage: "Le mot de passe doit contenir au moins {{ limit }} caractères."
     )]
     private ?string $password = null;
-
-    #[ORM\ManyToOne(targetEntity: Role::class, inversedBy: "users")]
-    #[ORM\JoinColumn(nullable: false)]
-    #[Groups(["user:read"])]
-    private ?Role $role = null;
+    
+    #[ORM\Column]
+    private array $roles = [];
 
     #[ORM\Column(length: 20, unique: true)]
     #[Assert\NotBlank(message: "Le téléphone est obligatoire.")]
@@ -58,9 +62,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         pattern: "/^(7[07865])[0-9]{7}$/",
         message: "Le numéro de téléphone '{{ value }}' n'est pas valide (format sénégalais)."
     )]
-    #[Groups(["user:read"])]
-    private ?string $telephone = null;
+    private ?string $telephone = '761234589';
 
+    public function __construct($login, $password)
+    {
+        $this->login = $login;
+        $this->password = $password;
+        $this->roles = ['ROLE_USER'];
+    }
 
     public function getId(): ?int
     {
@@ -89,25 +98,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return (string) $this->login;
     }
 
-
-    public function getRole(): ?Role
-    {
-        return $this->role;
-    }
-
     /**
      * @see UserInterface
      * @return list<string>
      */
 
-    public function getRoles(): array
-    {
-        return [$this->role->value];
-    }
+     public function getRoles(): array
+     {
+         $roles = $this->roles;
+         $roles[] = 'ROLE_USER';
+ 
+         return array_unique($roles);
+     }
 
-    public function setRole(RoleEnum $role): self
+    public function setRoles(array $roles): static
     {
-        $this->role = $role;
+        $this->roles = $roles;
+        $this->getRoles();
         return $this;
     }
 
@@ -170,4 +177,5 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
 }

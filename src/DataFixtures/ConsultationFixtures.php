@@ -13,19 +13,16 @@ class ConsultationFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $medecin = new Medecin();
-        $medecin->setNom('Doe');
-        $medecin->setPrenom('John');
+        $medecin = new Medecin('medecin', 'medecin');
+        $medecin->setNom('NomMedecin');
+        $medecin->setPrenom('PrenomMedecin');
         $manager->persist($medecin);
-
-        $rendezVous = $manager->getRepository(RendezVous::class)->findOneBy(['id' => 1]);
 
         $consultation = new Consultation();
         $consultation->setTemperature('37.5');
-        $consultation->setTension('120/80');
+        $consultation->setTension('120:8');
         $consultation->setPouls('80');
         $consultation->setMedecin($medecin);
-        $consultation->setRendezVous($rendezVous);
         $manager->persist($consultation);
 
         $manager->flush();

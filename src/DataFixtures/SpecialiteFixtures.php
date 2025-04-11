@@ -10,22 +10,19 @@ class SpecialiteFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $specialite1 = new Specialite();
-        $specialite1->setLibelle('Ophtamologue');
+        $specialites = [
+            'Généraliste' => null,
+            'Dentiste' => null,
+            'Ophtalmologue' => null,
+            'Cardiologue' => null
+        ];
 
-        $specialite2 = new Specialite();
-        $specialite2->setLibelle('Dentiste');
-
-        $specialite3 = new Specialite();
-        $specialite3->setLibelle('Diabetologue');
-
-        $specialite4 = new Specialite();
-        $specialite4->setLibelle('Rhumatologue');
-
-        $manager->persist($specialite1);
-        $manager->persist($specialite2);
-        $manager->persist($specialite3);
-        $manager->persist($specialite4);
+        foreach ($specialites as $nom => &$specialite) {
+            $spec = new Specialite();
+            $spec->setLibelle($nom);
+            $manager->persist($spec);
+            $specialite = $spec;
+        }
 
         $manager->flush();
     }
